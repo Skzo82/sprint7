@@ -5,6 +5,7 @@ import tasks.*;
 import java.util.List;
 
 public interface TaskManager {
+
     Task getTask(int id);
 
     Task getSubtask(int id);
@@ -42,6 +43,6 @@ public interface TaskManager {
     void removeAllTasks();
 
     void removeAllEpics();
-    
+
     void removeAllSubtasks();
 }
