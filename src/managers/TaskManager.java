@@ -6,12 +6,19 @@ import java.util.List;
 
 public interface TaskManager {
     Task getTask(int id);
+
     Task getSubtask(int id);
+
     Task getEpic(int id);
+
     List<Task> getTasks();
+
     List<Task> getEpics();
+
     List<Task> getSubtasks();
+
     List<Subtask> getSubtasksByEpic(int epicId);
+
     List<Task> getHistory();
 
     int addNewTask(Task task);
