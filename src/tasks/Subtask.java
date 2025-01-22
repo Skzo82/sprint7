@@ -26,6 +26,7 @@ public class Subtask extends Task {
                 ", epicId=" + epicId +
                 '}';
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
