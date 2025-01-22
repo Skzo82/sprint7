@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/java-kanban.iml" filepath="$PROJECT_DIR$/java-kanban.iml" />
+      <module fileurl="file://$PROJECT_DIR$/HistoryManager/HistoryManager.iml" filepath="$PROJECT_DIR$/HistoryManager/HistoryManager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TaskManager/TaskManager.iml" filepath="$PROJECT_DIR$/TaskManager/TaskManager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/sprint_6-solution.iml" filepath="$PROJECT_DIR$/.idea/sprint_6-solution.iml" />
     </modules>
   </component>
 </project>
