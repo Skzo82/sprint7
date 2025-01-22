@@ -100,6 +100,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addNewSubtask(Subtask subtask) {
+        if (subtask.getId() == subtask.getEpicId()) {
+            throw new IllegalArgumentException("Epic cannot be its own subtask.");
+        }
         if (subtasks.containsKey(subtask.getId())) {
             throw new IllegalArgumentException("Subtask with this ID already exists.");
         }
@@ -116,6 +119,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         return subtask.getId();
     }
+
 
     @Override
     public void updateTask(Task task) {

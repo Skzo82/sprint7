@@ -289,17 +289,18 @@ public class InMemoryTaskManagerTest {
     @Test
     public void shouldNotAllowEpicAsItsOwnSubtask() {
         Epic epic = new Epic("Epic", "Description");
-        int epicId = manager.addNewEpic(epic);
+        int epicId = taskManager.addNewEpic(epic);
 
         Subtask invalidSubtask = new Subtask("Subtask", "Invalid", epicId);
         invalidSubtask.setId(epicId);
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.addNewSubtask(invalidSubtask);
+            taskManager.addNewSubtask(invalidSubtask);
         });
 
         assertEquals("Epic cannot be its own subtask.", exception.getMessage());
     }
+
 
     @Test
     public void testHistoryLimit() {
