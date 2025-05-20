@@ -1,35 +1,61 @@
-package taskmanager.test;
+package test;
 
-import org.junit.jupiter.api.Test;
 import managers.FileBackedTaskManager;
+import managers.TaskManager;
 import tasks.Task;
 import tasks.Epic;
 import tasks.Subtask;
+import tasks.TaskStatus;
 
-import java.io.File;
+import org.junit.jupiter.api.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FileBackedTaskManagerTest {
-    private final File file = new File("test.csv");
-    private FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
+
+    private Path testFile;
+    private TaskManager manager;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        testFile = Files.createTempFile("tasks", ".csv");
+        manager = new FileBackedTaskManager(testFile);
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        Files.deleteIfExists(testFile);
+    }
 
     @Test
-    public void testSaveAndLoad() {
+    public void тестСохраненияИЗагрузки() {
+        // Создаем задачи, эпик и подзадачу
+        Task задача = new Task("Задача", "Описание", TaskStatus.NEW, Duration.ofMinutes(20), LocalDateTime.now());
+        int taskId = manager.addNewTask(задача);
 
-        Task task = new Task("Test Task", "This is a test task.");
-        taskManager.addNewTask(task);
+        Epic эпик = new Epic("Эпик", "Описание эпика");
+        int epicId = manager.addNewEpic(эпик);
 
-        Epic epic = new Epic("Test Epic", "Epic description");
-        int epicId = taskManager.addNewEpic(epic); // Otteniamo l'ID dell'epic
+        Subtask подзадача = new Subtask("Подзадача", "Описание", TaskStatus.NEW, Duration.ofMinutes(10), LocalDateTime.now(), epicId);
+        int subtaskId = manager.addNewSubtask(подзадача);
 
-        Subtask subtask = new Subtask("Test Subtask", "Subtask description", epicId);
-        taskManager.addNewSubtask(subtask);
+        // Пересоздаем менеджер и проверяем, что всё загрузилось из файла
+        TaskManager loaded = new FileBackedTaskManager(testFile);
 
-        taskManager = FileBackedTaskManager.loadFromFile(file);
+        Task taskFromFile = loaded.getTask(taskId);
+        Epic epicFromFile = loaded.getEpic(epicId);
+        Subtask subtaskFromFile = loaded.getSubtask(subtaskId);
 
-
-        assertNotNull(taskManager.getTask(task.getId()), "Task should be loaded.");
-        assertNotNull(taskManager.getEpic(epicId), "Epic should be loaded."); // Usa epicId
-        assertNotNull(taskManager.getSubtask(subtask.getId()), "Subtask should be loaded.");
+        assertNotNull(taskFromFile, "Задача должна быть загружена из файла");
+        assertNotNull(epicFromFile, "Эпик должен быть загружен из файла");
+        assertNotNull(subtaskFromFile, "Подзадача должна быть загружена из файла");
+        assertEquals("Задача", taskFromFile.getName());
+        assertEquals("Эпик", epicFromFile.getName());
+        assertEquals("Подзадача", subtaskFromFile.getName());
     }
 }

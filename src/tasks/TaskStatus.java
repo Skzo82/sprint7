@@ -1,7 +1,8 @@
 package tasks;
 
+// Перечисление возможных статусов задачи
 public enum TaskStatus {
-    NEW,
-    IN_PROGRESS,
-    DONE
+    NEW,           // Новая задача
+    IN_PROGRESS,   // В процессе выполнения
+    DONE           // Выполнена
 }

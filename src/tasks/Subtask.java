@@ -1,11 +1,19 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+// Класс "Подзадача"
 public class Subtask extends Task {
-    private int epicId;
+    private int epicId; // ID родительского эпика
 
+    public Subtask(String name, String description, TaskStatus status, Duration duration, LocalDateTime startTime, int epicId) {
+        super(name, description, status, duration, startTime);
+        this.epicId = epicId;
+    }
 
-    public Subtask(String name, String description, int epicId) {
-        super(name, description);
+    public Subtask(int id, String name, String description, TaskStatus status, Duration duration, LocalDateTime startTime, int epicId) {
+        super(id, name, description, status, duration, startTime);
         this.epicId = epicId;
     }
 
@@ -17,21 +25,27 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
+    // Переопределяем toCsv (для сохранения в файл)
     @Override
-    public String toString() {
-        return "Subtask{" +
-                "name='" + getName() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", status=" + getStatus() +
-                ", epicId=" + epicId +
-                '}';
+    public String toCsv() {
+        return String.format("%d,SUBTASK,%s,%s,%s,%s,%s,%d",
+                id, name, status, description, startTime, duration, epicId);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Subtask)) return false;
-        Subtask subtask = (Subtask) o;
-        return this.getId() == subtask.getId() && this.getClass() == subtask.getClass();
+    public String toString() {
+        return "Подзадача{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                ", duration=" + duration +
+                ", startTime=" + startTime +
+                ", epicId=" + epicId +
+                '}';
+    }
+    @Override
+    public TaskType getType() {
+        return TaskType.SUBTASK;
     }
 }
