@@ -1,7 +1,6 @@
 package test;
 
 import managers.FileBackedTaskManager;
-import managers.TaskManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -9,28 +8,36 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-// Тест для проверки сохранения и загрузки задач в файл
-public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+public class FileBackedTaskManagerTest extends test.TaskManagerTest<FileBackedTaskManager> {
 
     private Path testFile;
 
     @BeforeEach
-    void setUpFile() throws IOException {
-        // Создаем временный файл для теста
-        testFile = Files.createTempFile("tasks_test", ".csv");
+    void setUp() {
+        try {
+            // Создаем временный файл перед каждым тестом
+            testFile = Files.createTempFile("tasks_test", ".csv");
+        } catch (IOException e) {
+            throw new AssertionError("Не удалось создать временный файл", e);
+        }
         manager = createManager();
     }
 
     @AfterEach
-    void tearDown() throws IOException {
-        // Удаляем временный файл после теста
-        if (testFile != null && Files.exists(testFile)) {
-            Files.delete(testFile);
+    void tearDown() {
+        try {
+            // Удаляем временный файл после каждого теста
+            if (testFile != null && Files.exists(testFile)) {
+                Files.delete(testFile);
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Не удалось удалить временный файл", e);
         }
     }
 
     @Override
     protected FileBackedTaskManager createManager() {
+        // Возвращаем новый экземпляр менеджера, работающего с временным файлом
         return new FileBackedTaskManager(testFile);
     }
 }
