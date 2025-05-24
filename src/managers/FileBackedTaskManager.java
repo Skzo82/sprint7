@@ -1,11 +1,10 @@
 package managers;
 
 import tasks.*;
+import utils.CsvUtil;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -16,53 +15,56 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         loadFromFile();
     }
 
-    // Сохранение всех задач, эпиков и подзадач в файл
-    private void save() {
-        StringBuilder sb = new StringBuilder("id,type,name,status,description,startTime,duration,epic\n");
-        for (Task task : tasks.values()) {
-            if (task instanceof Subtask) continue;
-            if (task instanceof Epic) continue;
-            sb.append(task.toCsv()).append("\n");
-        }
-        for (Epic epic : epics.values()) {
-            sb.append(epic.toCsv()).append("\n");
-        }
-        for (Subtask subtask : subtasks.values()) {
-            sb.append(subtask.toCsv()).append("\n");
-        }
+    // Сохраняет все задачи в файл
+    protected void save() {
         try {
-            Files.writeString(filePath, sb.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            List<String> lines = new ArrayList<>();
+            lines.add(CsvUtil.HEADER);
+            for (Task task : tasks.values()) {
+                if (!(task instanceof Epic) && !(task instanceof Subtask)) {
+                    lines.add(CsvUtil.toCsv(task));
+                }
+            }
+            for (Epic epic : epics.values()) {
+                lines.add(CsvUtil.toCsv(epic));
+            }
+            for (Subtask subtask : subtasks.values()) {
+                lines.add(CsvUtil.toCsv(subtask));
+            }
+            Files.write(filePath, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при сохранении задач в файл", e);
+            throw new RuntimeException("Ошибка сохранения задач в файл", e);
         }
     }
 
-    // Загрузка задач, эпиков и подзадач из файла
-    private void loadFromFile() {
+    // Загружает все задачи из файла
+    protected void loadFromFile() {
+        if (!Files.exists(filePath)) return;
         try {
-            if (!Files.exists(filePath)) return;
             List<String> lines = Files.readAllLines(filePath);
-            for (int i = 1; i < lines.size(); i++) { // пропустить первую строку-заголовок
+            if (lines.size() < 2) return; // Нет задач
+            for (int i = 1; i < lines.size(); i++) {
                 String line = lines.get(i);
-                if (line.isEmpty()) continue;
-                // Преобразуем строку CSV в задачу любого типа
-                Task task = Task.fromCsv(line);
+                if (line.trim().isEmpty()) continue;
+                String[] fields = line.split(",", -1);
+                TaskType type = CsvUtil.parseType(fields[1]);
+                int id = Integer.parseInt(fields[0]);
+                if (id >= currentId) currentId = id + 1;
 
-                // В зависимости от типа задачи сохраняем в соответствующую мапу
-                switch (task.getType()) {
+                switch (type) {
                     case TASK:
+                        Task task = CsvUtil.fromCsvTask(line);
                         tasks.put(task.getId(), task);
-                        prioritizedTasks.add(task);
+                        addToPrioritized(task);
                         break;
                     case EPIC:
-                        Epic epic = (Epic) task;
+                        Epic epic = CsvUtil.fromCsvEpic(line);
                         epics.put(epic.getId(), epic);
                         break;
                     case SUBTASK:
-                        Subtask subtask = (Subtask) task;
+                        Subtask subtask = CsvUtil.fromCsvSubtask(line);
                         subtasks.put(subtask.getId(), subtask);
-                        prioritizedTasks.add(subtask);
-                        // Добавляем подзадачу в соответствующий эпик
+                        addToPrioritized(subtask);
                         Epic parentEpic = epics.get(subtask.getEpicId());
                         if (parentEpic != null) {
                             parentEpic.addSubtask(subtask);
@@ -70,13 +72,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         break;
                 }
             }
-            // После загрузки всех подзадач пересчитать время и статус для каждого эпика
+            // После загрузки пересчитать время и статус эпиков
             for (Epic epic : epics.values()) {
-                epic.recalculateTimeAndDuration();
                 updateEpicStatus(epic);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при загрузке задач из файла", e);
+            throw new RuntimeException("Ошибка загрузки задач из файла", e);
         }
     }
 

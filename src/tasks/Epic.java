@@ -5,21 +5,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// Класс "Эпик" (группирует подзадачи)
+// Класс "Эпик" — объединяет подзадачи и автоматически рассчитывает время и длительность
 public class Epic extends Task {
     private final List<Subtask> subtasks = new ArrayList<>();
+    private LocalDateTime startTime = LocalDateTime.MAX;
+    private Duration duration = Duration.ZERO;
 
     public Epic(String name, String description) {
-        super(name, description, TaskStatus.NEW, Duration.ZERO, null);
+        super(name, description, TaskStatus.NEW, Duration.ZERO, LocalDateTime.MAX);
     }
 
     public Epic(int id, String name, String description) {
-        super(id, name, description, TaskStatus.NEW, Duration.ZERO, null);
-    }
-
-    // Получить список подзадач эпика
-    public List<Subtask> getSubtasks() {
-        return subtasks;
+        super(id, name, description, TaskStatus.NEW, Duration.ZERO, LocalDateTime.MAX);
     }
 
     // Добавить подзадачу к эпику
@@ -34,76 +31,75 @@ public class Epic extends Task {
         recalculateTimeAndDuration();
     }
 
-    // Очистить все подзадачи эпика
+    // Очистить все подзадачи у эпика
     public void clearSubtasks() {
         subtasks.clear();
         recalculateTimeAndDuration();
     }
 
-    // Пересчитать время начала, окончания и длительность эпика
+    // Получить список подзадач
+    public List<Subtask> getSubtasks() {
+        return new ArrayList<>(subtasks);
+    }
+
+    // Пересчитать время начала и длительность эпика на основе подзадач
     public void recalculateTimeAndDuration() {
         if (subtasks.isEmpty()) {
             this.startTime = null;
             this.duration = Duration.ZERO;
             return;
         }
-        LocalDateTime minStart = null;
-        LocalDateTime maxEnd = null;
-        Duration total = Duration.ZERO;
+        LocalDateTime minStart = LocalDateTime.MAX;
+        LocalDateTime maxEnd = LocalDateTime.MIN;
+        long totalMinutes = 0;
 
         for (Subtask sub : subtasks) {
-            if (sub.getStartTime() != null) {
-                if (minStart == null || sub.getStartTime().isBefore(minStart)) {
-                    minStart = sub.getStartTime();
-                }
-                LocalDateTime end = sub.getEndTime();
-                if (end != null && (maxEnd == null || end.isAfter(maxEnd))) {
-                    maxEnd = end;
-                }
+            if (sub.getStartTime() != null && sub.getStartTime().isBefore(minStart)) {
+                minStart = sub.getStartTime();
+            }
+            if (sub.getEndTime() != null && sub.getEndTime().isAfter(maxEnd)) {
+                maxEnd = sub.getEndTime();
             }
             if (sub.getDuration() != null) {
-                total = total.plus(sub.getDuration());
+                totalMinutes += sub.getDuration().toMinutes();
             }
         }
-        this.startTime = minStart;
-        this.duration = total;
+
+        this.startTime = (minStart == LocalDateTime.MAX) ? null : minStart;
+        this.duration = Duration.ofMinutes(totalMinutes);
     }
 
     @Override
-    public LocalDateTime getEndTime() {
-        if (subtasks.isEmpty()) return null;
-        LocalDateTime maxEnd = null;
-        for (Subtask subtask : subtasks) {
-            LocalDateTime subEnd = subtask.getEndTime();
-            if (subEnd != null && (maxEnd == null || subEnd.isAfter(maxEnd))) {
-                maxEnd = subEnd;
-            }
-        }
-        return maxEnd;
-    }
-
-    // Переопределяем toCsv (для сохранения в файл)
-    @Override
-    public String toCsv() {
-        return String.format("%d,EPIC,%s,%s,%s,%s,%s,",
-                id, name, status, description, startTime, duration);
+    public LocalDateTime getStartTime() {
+        return startTime == LocalDateTime.MAX ? null : startTime;
     }
 
     @Override
-    public String toString() {
-        return "Эпик{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                ", duration=" + duration +
-                ", startTime=" + startTime +
-                ", subtasks=" + subtasks.size() +
-                '}';
+    public Duration getDuration() {
+        return duration;
+    }
+
+    // Установить время начала эпика (для совместимости с менеджером)
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    // Установить длительность эпика (для совместимости с менеджером)
+    public void setDuration(Duration duration) {
+        this.duration = duration;
     }
 
     @Override
     public TaskType getType() {
         return TaskType.EPIC;
+    }
+
+    // Для сериализации эпика в CSV (может быть полезно для FileBackedTaskManager)
+    @Override
+    public String toString() {
+        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," +
+                getDescription() + "," +
+                (getStartTime() != null ? getStartTime() : "") + "," +
+                (getDuration() != null ? getDuration().toMinutes() : "");
     }
 }
