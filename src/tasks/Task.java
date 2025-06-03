@@ -1,6 +1,6 @@
 package tasks;
 
-import Utils.CsvUtil;
+import utils.CsvUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

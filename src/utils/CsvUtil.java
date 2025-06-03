@@ -1,4 +1,4 @@
-package Utils;
+package utils;
 
 import tasks.*;
 
@@ -21,7 +21,7 @@ public class CsvUtil {
         fields[4] = task.getDescription();
         fields[5] = (task.getStartTime() != null ? task.getStartTime().format(DATE_TIME_FORMATTER) : "");
         fields[6] = (task.getDuration() != null ? String.valueOf(task.getDuration().toMinutes()) : "");
-        
+
         if (task.getType() == TaskType.SUBTASK) {
             fields[7] = String.valueOf(((Subtask) task).getEpicId());
         } else {
