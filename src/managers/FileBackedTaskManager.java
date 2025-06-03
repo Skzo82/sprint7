@@ -1,53 +1,53 @@
 package managers;
 
 import tasks.*;
-import utils.CsvUtil;
+import Utils.CsvUtil;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
-    private final Path filePath;
+    private final File file;
 
-    public FileBackedTaskManager(Path filePath) {
-        this.filePath = filePath;
-        loadFromFile();
+    public FileBackedTaskManager(File file) {
+        this.file = file;
     }
 
     // Сохраняет все задачи в файл
     protected void save() {
-        try {
-            List<String> lines = new ArrayList<>();
-            lines.add(CsvUtil.HEADER);
-            for (Task task : tasks.values()) {
-                if (!(task instanceof Epic) && !(task instanceof Subtask)) {
-                    lines.add(CsvUtil.toCsv(task));
-                }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(CsvUtil.HEADER);
+            writer.newLine();
+            for (Task task : getAllTasks()) {
+                writer.write(CsvUtil.toCsv(task));
+                writer.newLine();
             }
-            for (Epic epic : epics.values()) {
-                lines.add(CsvUtil.toCsv(epic));
-            }
-            for (Subtask subtask : subtasks.values()) {
-                lines.add(CsvUtil.toCsv(subtask));
-            }
-            Files.write(filePath, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка сохранения задач в файл", e);
+            throw new ManagerSaveException("Ошибка сохранения в файл", e);
         }
+    }
+
+    // Получить все задачи в одном списке (tasks + epics + subtasks)
+    public List<Task> getAllTasks() {
+        List<Task> result = new ArrayList<>();
+        result.addAll(tasks.values());
+        result.addAll(epics.values());
+        result.addAll(subtasks.values());
+        return result;
     }
 
     // Загружает все задачи из файла
     protected void loadFromFile() {
-        if (!Files.exists(filePath)) return;
+        if (!Files.exists(file.toPath())) return;
         try {
-            List<String> lines = Files.readAllLines(filePath);
+            List<String> lines = Files.readAllLines(file.toPath());
             if (lines.size() < 2) return; // Нет задач
             for (int i = 1; i < lines.size(); i++) {
                 String line = lines.get(i);
                 if (line.trim().isEmpty()) continue;
                 String[] fields = line.split(",", -1);
-                TaskType type = CsvUtil.parseType(fields[1]);
+                TaskType type = TaskType.valueOf(fields[1]);
                 int id = Integer.parseInt(fields[0]);
                 if (id >= currentId) currentId = id + 1;
 
@@ -58,11 +58,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         addToPrioritized(task);
                         break;
                     case EPIC:
-                        Epic epic = CsvUtil.fromCsvEpic(line);
+                        Epic epic = (Epic) CsvUtil.fromCsvTask(line);
                         epics.put(epic.getId(), epic);
                         break;
                     case SUBTASK:
-                        Subtask subtask = CsvUtil.fromCsvSubtask(line);
+                        Subtask subtask = (Subtask) CsvUtil.fromCsvTask(line);
                         subtasks.put(subtask.getId(), subtask);
                         addToPrioritized(subtask);
                         Epic parentEpic = epics.get(subtask.getEpicId());

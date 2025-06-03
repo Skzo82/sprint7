@@ -7,9 +7,8 @@ import java.util.List;
 
 public class Epic extends Task {
     private final List<Subtask> subtasks = new ArrayList<>();
-    private LocalDateTime startTime = null;
-    private Duration duration = Duration.ZERO;
-    private LocalDateTime endTime = null;
+    private LocalDateTime endTime;
+
 
     public Epic(String name, String description) {
         super(name, description, TaskStatus.NEW, Duration.ZERO, null);
@@ -35,42 +34,37 @@ public class Epic extends Task {
     }
 
     public List<Subtask> getSubtasks() {
-        return new ArrayList<>(subtasks);
+        return subtasks;
     }
 
     // Пересчитать время начала и длительность эпика на основе подзадач
     public void recalculateTimeAndDuration() {
         if (subtasks.isEmpty()) {
-            this.startTime = null;
-            this.endTime = null;
-            this.duration = Duration.ZERO;
+            setStartTime(null);
+            setDuration(Duration.ZERO);
+            endTime = null;
             return;
         }
-        LocalDateTime minStart = LocalDateTime.MAX;
-        LocalDateTime maxEnd = LocalDateTime.MIN;
+        LocalDateTime minStart = null;
+        LocalDateTime maxEnd = null;
         Duration totalDuration = Duration.ZERO;
-        boolean hasValid = false;
-
-        for (Subtask sub : subtasks) {
-            if (sub.getStartTime() != null && sub.getDuration() != null) {
-                hasValid = true;
-                LocalDateTime subStart = sub.getStartTime();
-                LocalDateTime subEnd = sub.getEndTime();
-                if (subStart.isBefore(minStart)) minStart = subStart;
-                if (subEnd.isAfter(maxEnd)) maxEnd = subEnd;
-                totalDuration = totalDuration.plus(sub.getDuration());
+        for (Subtask s : subtasks) {
+            if (s.getStartTime() != null) {
+                if (minStart == null || s.getStartTime().isBefore(minStart)) {
+                    minStart = s.getStartTime();
+                }
+                LocalDateTime subEnd = s.getEndTime();
+                if (maxEnd == null || (subEnd != null && subEnd.isAfter(maxEnd))) {
+                    maxEnd = subEnd;
+                }
+            }
+            if (s.getDuration() != null) {
+                totalDuration = totalDuration.plus(s.getDuration());
             }
         }
-
-        if (hasValid) {
-            this.startTime = minStart;
-            this.endTime = maxEnd;
-            this.duration = totalDuration;
-        } else {
-            this.startTime = null;
-            this.endTime = null;
-            this.duration = Duration.ZERO;
-        }
+        setStartTime(minStart);
+        setDuration(totalDuration);
+        endTime = maxEnd;
     }
 
     @Override

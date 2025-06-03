@@ -19,6 +19,6 @@ public class Managers {
 
     // Пример: можно добавить фабрику для менеджера, работающего с файлами
     public static TaskManager getFileBacked(Path filePath) {
-        return new FileBackedTaskManager(filePath);
+        return new FileBackedTaskManager(filePath.toFile());
     }
 }
