@@ -9,7 +9,6 @@ public class Epic extends Task {
     private final List<Subtask> subtasks = new ArrayList<>();
     private LocalDateTime endTime;
 
-
     public Epic(String name, String description) {
         super(name, description, TaskStatus.NEW, Duration.ZERO, null);
     }
@@ -45,16 +44,17 @@ public class Epic extends Task {
             endTime = null;
             return;
         }
-        LocalDateTime minStart = null;
-        LocalDateTime maxEnd = null;
+        LocalDateTime minStart = LocalDateTime.MAX;
+        LocalDateTime maxEnd = LocalDateTime.MIN;
         Duration totalDuration = Duration.ZERO;
+
         for (Subtask s : subtasks) {
             if (s.getStartTime() != null) {
-                if (minStart == null || s.getStartTime().isBefore(minStart)) {
+                if (s.getStartTime().isBefore(minStart)) {
                     minStart = s.getStartTime();
                 }
                 LocalDateTime subEnd = s.getEndTime();
-                if (maxEnd == null || (subEnd != null && subEnd.isAfter(maxEnd))) {
+                if (subEnd != null && subEnd.isAfter(maxEnd)) {
                     maxEnd = subEnd;
                 }
             }
@@ -62,9 +62,12 @@ public class Epic extends Task {
                 totalDuration = totalDuration.plus(s.getDuration());
             }
         }
-        setStartTime(minStart);
+
+        // Если minStart не изменился, значит не было ни одной подзадачи с датой старта
+        setStartTime(minStart.equals(LocalDateTime.MAX) ? null : minStart);
+        // Если maxEnd не изменился, значит не было ни одной подзадачи с датой окончания
+        endTime = maxEnd.equals(LocalDateTime.MIN) ? null : maxEnd;
         setDuration(totalDuration);
-        endTime = maxEnd;
     }
 
     @Override

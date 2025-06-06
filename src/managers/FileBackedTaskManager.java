@@ -29,7 +29,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Получить все задачи в одном списке (tasks + epics + subtasks)
-    public List<Task> getAllTasks() {
+    private List<Task> getAllTasks() {
         List<Task> result = new ArrayList<>();
         result.addAll(tasks.values());
         result.addAll(epics.values());
@@ -38,7 +38,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Загружает все задачи из файла
-    protected void loadFromFile() {
+    public void loadFromFile() {
         if (!Files.exists(file.toPath())) return;
         try {
             List<String> lines = Files.readAllLines(file.toPath());
@@ -77,7 +77,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 updateEpicStatus(epic);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка загрузки задач из файла", e);
+            throw new ManagerSaveException("Ошибка загрузки задач из файла", e);
         }
     }
 

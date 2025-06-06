@@ -31,7 +31,6 @@ public class CsvUtil {
         return String.join(",", fields);
     }
 
-
     // Восстановить тип задачи из строки
     public static TaskType parseType(String value) {
         return TaskType.valueOf(value);
@@ -50,7 +49,9 @@ public class CsvUtil {
         String name = fields.length > 2 ? fields[2] : "";
         TaskStatus status = fields.length > 3 ? TaskStatus.valueOf(fields[3]) : TaskStatus.NEW;
         String description = fields.length > 4 ? fields[4] : "";
-        LocalDateTime startTime = fields.length > 5 && !fields[5].isEmpty() ? LocalDateTime.parse(fields[5]) : null;
+        LocalDateTime startTime = fields.length > 5 && !fields[5].isEmpty()
+                ? LocalDateTime.parse(fields[5], DATE_TIME_FORMATTER)
+                : null;
         Duration duration = fields.length > 6 && !fields[6].isEmpty() ? Duration.ofMinutes(Long.parseLong(fields[6])) : Duration.ZERO;
 
         switch (type) {
@@ -95,7 +96,9 @@ public class CsvUtil {
         String name = fields[2];
         TaskStatus status = TaskStatus.valueOf(fields[3]);
         String description = fields[4];
-        LocalDateTime startTime = fields[5].isEmpty() ? null : LocalDateTime.parse(fields[5]);
+        LocalDateTime startTime = fields[5].isEmpty()
+                ? null
+                : LocalDateTime.parse(fields[5], DATE_TIME_FORMATTER);
         Duration duration = fields[6].isEmpty() ? Duration.ZERO : Duration.ofMinutes(Long.parseLong(fields[6]));
         int epicId = Integer.parseInt(fields[7]);
         return new Subtask(id, name, description, status, duration, startTime, epicId);
