@@ -1,7 +1,12 @@
 package tasks;
 
+// Тип задачи
 public enum TaskType {
-    TASK,
-    EPIC,
-    SUBTASK
+
+    TASK,     // Обычная задача
+
+    EPIC,     // Эпик (глобальная задача)
+
+    SUBTASK   // Подзадача
+
 }

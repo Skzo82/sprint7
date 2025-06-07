@@ -1,45 +1,36 @@
+package managers;
+
+import tasks.*;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Main {
     public static void main(String[] args) {
-        TaskManager taskManager = new TaskManager();
+        // Создаём менеджер задач
+        TaskManager manager = Managers.getDefault();
 
-        // Создание задач
-        Task task1 = new Task(taskManager.generateId(), "Переезд", "Переезд на новую квартиру", TaskStatus.NEW);
-        Task task2 = new Task(taskManager.generateId(), "Покупка мебели", "Купить новую мебель для квартиры", TaskStatus.NEW);
+        // Создаём новую задачу
+        Task task1 = new Task("Сделать домашку", "Сделать задачи по Java", TaskStatus.NEW, Duration.ofMinutes(30), LocalDateTime.of(2025, 5, 20, 18, 0));
+        int taskId = manager.addNewTask(task1);
 
-        // Создание эпиков и подзадач
-        Epic epic1 = new Epic(taskManager.generateId(), "Семейный праздник", "Организация семейного праздника");
-        Subtask subtask1 = new Subtask(taskManager.generateId(), "Пригласить гостей", "Отправить приглашения", TaskStatus.NEW, epic1.getId());
-        Subtask subtask2 = new Subtask(taskManager.generateId(), "Купить еду", "Купить еду и напитки", TaskStatus.NEW, epic1.getId());
+        // Получаем задачу по id и выводим на экран
+        Task taskLoaded = manager.getTask(taskId);
+        System.out.println("Задача: " + taskLoaded.getName() + ", конец: " + taskLoaded.getEndTime());
 
-        // Сохраняем задачи и эпики через менеджер
-        taskManager.createTask(task1);
-        taskManager.createTask(task2);
-        taskManager.createEpic(epic1);
-        taskManager.createSubtask(subtask1);
-        taskManager.createSubtask(subtask2);
+        // Создаём эпик и подзадачу
+        Epic epic = new Epic("Купить продукты", "Купить молоко, хлеб и яйца");
+        int epicId = manager.addNewEpic(epic);
 
-        // Распечатываем задачи и эпики
-        System.out.println("Все задачи:");
-        taskManager.getAllTasks().forEach((id, task) -> System.out.println(task.getTitle() + " - " + task.getStatus()));
+        Subtask subtask = new Subtask("Купить молоко", "В магазине у дома", TaskStatus.NEW, Duration.ofMinutes(10), LocalDateTime.of(2025, 5, 20, 19, 0), epicId);
+        int subtaskId = manager.addNewSubtask(subtask);
 
-        // Обновление статусов
-        subtask1.setStatus(TaskStatus.DONE);
-        subtask2.setStatus(TaskStatus.IN_PROGRESS);
-        taskManager.updateSubtask(subtask1);
-        taskManager.updateSubtask(subtask2);
-
-        // Распечатываем статусы после обновления
-        System.out.println("\nОбновленные статусы:");
-        System.out.println("Эпик: " + epic1.getTitle() + " - " + epic1.getStatus());
-        System.out.println("Подзадача 1: " + subtask1.getTitle() + " - " + subtask1.getStatus());
-        System.out.println("Подзадача 2: " + subtask2.getTitle() + " - " + subtask2.getStatus());
-
-        // Удаление задачи и эпика
-        taskManager.deleteTask(task1.getId());
-        taskManager.deleteTask(epic1.getId());
-
-        // Проверка оставшихся задач
-        System.out.println("\nОставшиеся задачи после удаления:");
-        taskManager.getAllTasks().forEach((id, task) -> System.out.println(task.getTitle() + " - " + task.getStatus()));
+        // Получаем эпик и его подзадачи
+        Epic epicLoaded = manager.getEpic(epicId);
+        System.out.println("Эпик: " + epicLoaded.getName() + ", длительность: " + epicLoaded.getDuration() + ", начало: " + epicLoaded.getStartTime());
+        System.out.println("Подзадачи эпика: ");
+        for (Subtask s : epicLoaded.getSubtasks()) {
+            System.out.println(" - " + s.getName());
+        }
     }
 }

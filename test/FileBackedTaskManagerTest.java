@@ -1,35 +1,43 @@
-package taskmanager.test;
-
-import org.junit.jupiter.api.Test;
 import managers.FileBackedTaskManager;
+import org.junit.jupiter.api.Test;
 import tasks.Task;
-import tasks.Epic;
-import tasks.Subtask;
+import tasks.TaskStatus;
 
 import java.io.File;
-import static org.junit.jupiter.api.Assertions.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
-public class FileBackedTaskManagerTest {
-    private final File file = new File("test.csv");
-    private FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+// Тесты для файлового менеджера задач
+public class FileBackedTaskManagerTest extends test.TaskManagerTest<FileBackedTaskManager> {
+
+    @Override
+    protected FileBackedTaskManager createManager() {
+        return new FileBackedTaskManager(new File("test.csv"));
+    }
+
+    // Тест проверки сохранения и загрузки из файла
     @Test
-    public void testSaveAndLoad() {
+    public void shouldSaveAndLoadTasksFromFile() {
+        File file = new File("test-tasks.csv");
+        if (file.exists()) file.delete();
 
-        Task task = new Task("Test Task", "This is a test task.");
-        taskManager.addNewTask(task);
+        FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        Task task = new Task("Test", "Desc", TaskStatus.NEW, Duration.ofMinutes(10), LocalDateTime.of(2024, 6, 3, 12, 0));
+        int taskId = manager.addNewTask(task);
 
-        Epic epic = new Epic("Test Epic", "Epic description");
-        int epicId = taskManager.addNewEpic(epic); // Otteniamo l'ID dell'epic
+        FileBackedTaskManager loadedManager = new FileBackedTaskManager(file);
+        loadedManager.loadFromFile();
 
-        Subtask subtask = new Subtask("Test Subtask", "Subtask description", epicId);
-        taskManager.addNewSubtask(subtask);
+        Task loadedTask = loadedManager.getTask(taskId);
 
-        taskManager = FileBackedTaskManager.loadFromFile(file);
+        assertNotNull(loadedTask);
+        assertEquals(task.getName(), loadedTask.getName());
+        assertEquals(task.getDescription(), loadedTask.getDescription());
+        assertEquals(task.getStatus(), loadedTask.getStatus());
 
-
-        assertNotNull(taskManager.getTask(task.getId()), "Task should be loaded.");
-        assertNotNull(taskManager.getEpic(epicId), "Epic should be loaded."); // Usa epicId
-        assertNotNull(taskManager.getSubtask(subtask.getId()), "Subtask should be loaded.");
+        file.delete();
     }
 }

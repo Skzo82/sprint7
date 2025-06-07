@@ -1,11 +1,15 @@
-import tasks.Task;
+package tasks;
 
-class Node {
-    Task task;
-    Node prev;
-    Node next;
+public class Node<T> {
 
-    public Node(Task task) {
-        this.task = task;
+    T data;
+
+    Node<T> prev;
+
+    Node<T> next;
+
+    public Node(T data) {
+        this.data = data;
     }
+
 }
