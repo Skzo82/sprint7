@@ -58,6 +58,15 @@ public class Task {
         return status;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+
     // Установить статус задачи
     public void setStatus(TaskStatus status) {
         this.status = status;

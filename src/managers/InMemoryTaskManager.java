@@ -250,4 +250,16 @@ public class InMemoryTaskManager implements TaskManager {
             epic.recalculateTimeAndDuration();
         }
     }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
+    }
+
+    @Override
+    public void deleteTaskById(int id) {
+        tasks.remove(id);
+        historyManager.remove(id);
+        prioritizedTasks.removeIf(t -> t.getId() == id);
+    }
 }
