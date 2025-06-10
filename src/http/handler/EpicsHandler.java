@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class EpicsHandler extends BaseHttpHandler {
     private final TaskManager manager;
@@ -44,12 +45,13 @@ public class EpicsHandler extends BaseHttpHandler {
                     InputStream input = exchange.getRequestBody();
                     String body = new String(input.readAllBytes(), StandardCharsets.UTF_8);
                     Epic epic = gson.fromJson(body, Epic.class);
-                    if (manager.getEpic(epic.getId()) != null) {
+                    try {
                         manager.updateEpic(epic);
-                    } else {
+                    } catch (NoSuchElementException e) {
                         manager.addNewEpic(epic);
                     }
                     sendCreated(exchange);
+
                     break;
                 case "DELETE":
                     if (query != null && query.startsWith("id=")) {

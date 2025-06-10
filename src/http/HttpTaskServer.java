@@ -29,6 +29,7 @@ public class HttpTaskServer {
         server.createContext("/tasks", new TasksHandler(taskManager));
         server.createContext("/subtasks", new SubtasksHandler(taskManager));
         server.createContext("/epics", new EpicsHandler(taskManager));
+        server.createContext("/epics/", new EpicSubtasksHandler(taskManager));
         server.createContext("/history", new HistoryHandler(taskManager));
         server.createContext("/prioritized", new PrioritizedHandler(taskManager));
     }
@@ -43,12 +44,6 @@ public class HttpTaskServer {
         System.out.println("HTTP-сервер остановлен.");
     }
 
-    public static Gson getGson() {
-        return new GsonBuilder()
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
-    }
 
     public static void main(String[] args) throws IOException {
         TaskManager manager = Managers.getDefault();

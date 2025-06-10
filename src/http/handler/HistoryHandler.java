@@ -3,6 +3,7 @@ package http.handler;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import http.HttpTaskServer;
+import managers.Managers;
 import managers.TaskManager;
 import tasks.Task;
 
@@ -11,7 +12,8 @@ import java.util.List;
 
 public class HistoryHandler extends BaseHttpHandler {
     private final TaskManager manager;
-    private final Gson gson = HttpTaskServer.getGson();
+    protected final Gson gson = Managers.getGson();
+
 
     public HistoryHandler(TaskManager manager) {
         this.manager = manager;

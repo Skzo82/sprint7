@@ -3,6 +3,7 @@ package http.handler;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import http.HttpTaskServer;
+import managers.Managers;
 import managers.TaskManager;
 import tasks.Subtask;
 
@@ -10,10 +11,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class SubtasksHandler extends BaseHttpHandler {
     private final TaskManager manager;
-    private final Gson gson = HttpTaskServer.getGson();
+    protected final Gson gson = Managers.getGson();
 
     public SubtasksHandler(TaskManager manager) {
         this.manager = manager;
@@ -45,12 +47,13 @@ public class SubtasksHandler extends BaseHttpHandler {
                     String body = new String(input.readAllBytes(), StandardCharsets.UTF_8);
                     Subtask subtask = gson.fromJson(body, Subtask.class);
                     try {
-                        if (manager.getSubtask(subtask.getId()) != null) {
+                        try {
                             manager.updateSubtask(subtask);
-                        } else {
+                        } catch (NoSuchElementException e) {
                             manager.addNewSubtask(subtask);
                         }
                         sendCreated(exchange);
+
                     } catch (IllegalArgumentException e) {
                         sendHasInteractions(exchange);
                     }
