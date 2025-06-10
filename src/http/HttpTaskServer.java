@@ -1,13 +1,6 @@
 package http;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import utils.DurationAdapter;
-import utils.LocalDateTimeAdapter;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-
 import com.sun.net.httpserver.HttpServer;
 import http.handler.*;
 import managers.Managers;
