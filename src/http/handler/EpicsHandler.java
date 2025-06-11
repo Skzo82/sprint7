@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import managers.Managers;
 import managers.TaskManager;
 import tasks.Epic;
+import tasks.Subtask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,16 @@ public class EpicsHandler extends BaseHttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
+        String path = exchange.getRequestURI().getPath();
         String query = exchange.getRequestURI().getQuery();
+
+        if ("GET".equals(method) && path.matches("/epics/\\d+/subtasks")) {
+            int epicId = Integer.parseInt(path.split("/")[2]);
+            List<Subtask> subtasks = manager.getEpicSubtasks(epicId);
+            sendText(exchange, gson.toJson(subtasks));
+            return;
+        }
+
 
         try {
             switch (method) {

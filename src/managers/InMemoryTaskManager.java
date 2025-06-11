@@ -192,7 +192,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeTask(int id) {
         Task removed = tasks.remove(id);
-        if (removed != null) prioritizedTasks.remove(removed);
+        if (removed != null) {
+            prioritizedTasks.remove(removed);
+            historyManager.remove(id);
+        }
     }
 
     @Override
@@ -267,10 +270,4 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(prioritizedTasks);
     }
 
-    @Override
-    public void deleteTaskById(int id) {
-        tasks.remove(id);
-        historyManager.remove(id);
-        prioritizedTasks.removeIf(t -> t.getId() == id);
-    }
 }

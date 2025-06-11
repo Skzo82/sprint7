@@ -68,5 +68,4 @@ public interface TaskManager {
     // Получить задачи в порядке приоритета
     List<Task> getPrioritizedTasks();
 
-    void deleteTaskById(int id);
 }

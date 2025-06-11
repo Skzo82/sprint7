@@ -88,7 +88,7 @@ public class HttpTaskServerHistoryAndPrioritizedTest {
                 TaskStatus.NEW, Duration.ofMinutes(10), LocalDateTime.now());
         int id = manager.addNewTask(task);
         manager.getTask(id);
-        manager.deleteTaskById(id);
+        manager.removeTask(id);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/history"))
