@@ -153,35 +153,49 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (!tasks.containsKey(task.getId())) throw new IllegalArgumentException("Задача не найдена!");
+        if (!tasks.containsKey(task.getId())) {
+            throw new NoSuchElementException("Задача не найдена!");
+        }
         prioritizedTasks.remove(tasks.get(task.getId()));
         tasks.put(task.getId(), task);
         addToPrioritized(task);
     }
 
+
     @Override
     public void updateEpic(Epic epic) {
-        if (!epics.containsKey(epic.getId())) throw new IllegalArgumentException("Эпик не найден!");
+        if (!epics.containsKey(epic.getId())) {
+            throw new NoSuchElementException("Эпик не найден!");
+        }
         epics.put(epic.getId(), epic);
         updateEpicStatus(epic);
         epic.recalculateTimeAndDuration();
     }
 
+
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (!subtasks.containsKey(subtask.getId())) throw new IllegalArgumentException("Подзадача не найдена!");
+        if (!subtasks.containsKey(subtask.getId())) {
+            throw new NoSuchElementException("Подзадача не найдена!");
+        }
         prioritizedTasks.remove(subtasks.get(subtask.getId()));
         subtasks.put(subtask.getId(), subtask);
-        addToPrioritized(subtask);
         Epic epic = epics.get(subtask.getEpicId());
-        updateEpicStatus(epic);
-        epic.recalculateTimeAndDuration();
+        if (epic != null) {
+            updateEpicStatus(epic);
+            epic.recalculateTimeAndDuration();
+        }
+        addToPrioritized(subtask);
     }
+
 
     @Override
     public void removeTask(int id) {
         Task removed = tasks.remove(id);
-        if (removed != null) prioritizedTasks.remove(removed);
+        if (removed != null) {
+            prioritizedTasks.remove(removed);
+            historyManager.remove(id);
+        }
     }
 
     @Override
@@ -250,4 +264,10 @@ public class InMemoryTaskManager implements TaskManager {
             epic.recalculateTimeAndDuration();
         }
     }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
+    }
+
 }

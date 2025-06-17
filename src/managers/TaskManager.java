@@ -64,4 +64,8 @@ public interface TaskManager {
 
     // Удалить все подзадачи
     void removeAllSubtasks();
+
+    // Получить задачи в порядке приоритета
+    List<Task> getPrioritizedTasks();
+
 }
